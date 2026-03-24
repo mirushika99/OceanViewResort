@@ -39,7 +39,7 @@ public class UserDAO {
 
         return status;
     }
-    
+
     public static String validateUser(String email, String password) {
 
         String role = null;
@@ -67,8 +67,7 @@ public class UserDAO {
 
         return role;
     }
-    
-    
+
     public static boolean insertUser(User user) {
 
         boolean status = false;
@@ -101,40 +100,60 @@ public class UserDAO {
 
         return status;
     }
-    
+
     public static User getUser(String email, String password) {
+        // FIX 1: try-with-resources â€” connection always closed
+        // FIX 2: JOIN guests to fetch first_name for session display
+        // FIX 3: explicit columns, no SELECT *
+        String sql = "SELECT u.id, u.guest_id, u.email, u.role, g.first_name " +
+                "FROM users u " +
+                "LEFT JOIN guests g ON u.guest_id = g.id " +
+                "WHERE u.email = ? AND u.password = ?";
 
-        User user = null;
+        String hashedPassword = PasswordUtil.hashPassword(password);
+        if (hashedPassword == null)
+            return null;
 
-        try {
-            Connection conn = DBConnection.getConnection();
-
-            String hashedPassword = PasswordUtil.hashPassword(password);
-
-            String sql = "SELECT * FROM users WHERE email=? AND password=?";
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ps.setString(2, hashedPassword);
 
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                user = new User();
-
-                user.setId(rs.getInt("id"));
-                user.setGuestId(rs.getObject("guest_id") != null ? rs.getInt("guest_id") : null);
-                user.setEmail(rs.getString("email"));
-                user.setRole(rs.getString("role"));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setGuestId(rs.getObject("guest_id") != null ? rs.getInt("guest_id") : null);
+                    user.setEmail(rs.getString("email"));
+                    user.setRole(rs.getString("role"));
+                    user.setFirstName(rs.getString("first_name"));
+                    return user;
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return user;
+        return null;
     }
-    
-    
-}
 
+    public static boolean emailExists(String email) {
+
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT 1 FROM users WHERE email=?")) {
+
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+
+            return rs.next();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+}

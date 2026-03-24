@@ -20,29 +20,26 @@ public class LoginServlet extends HttpServlet {
 
         String email = request.getParameter("email");
         String password = request.getParameter("password");
-        
-        
-       
 
         User user = UserDAO.getUser(email, password);
         System.out.println(email);
-        System.out.println(password);    
+        System.out.println(password);
 
         if (user != null) {
-            
 
             HttpSession session = request.getSession();
             session.setAttribute("user", user.getEmail());
             session.setAttribute("role", user.getRole());
             session.setAttribute("guest_id", user.getGuestId());
+            session.setAttribute("guest_name", user.getFirstName());
 
             String contextPath = request.getContextPath();
 
             if (user.getRole().equals("admin")) {
-                System.out.println("admin");  
+                System.out.println("admin");
                 response.sendRedirect(contextPath + "/admin.jsp");
             } else {
-                System.out.println("guest");  
+                System.out.println("guest");
                 response.sendRedirect(request.getContextPath() + "/guest-dashboard");
             }
 
@@ -51,4 +48,3 @@ public class LoginServlet extends HttpServlet {
         }
     }
 }
-    
