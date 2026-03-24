@@ -1,12 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.servlet;
 
-import com.oceanview.oceanviewresort.dao.*;
+import com.oceanview.oceanviewresort.dao.GuestDAO;
+import com.oceanview.oceanviewresort.dao.UserDAO;
+import com.oceanview.oceanviewresort.model.Guest;
+import com.oceanview.oceanviewresort.model.User;
+import com.oceanview.oceanviewresort.util.EmailUtil;
+import com.oceanview.oceanviewresort.util.OtpStore;
 import com.oceanview.oceanviewresort.util.PasswordUtil;
-import com.oceanview.oceanviewresort.model.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -15,53 +15,138 @@ import java.io.IOException;
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
 
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.getRequestDispatcher("/register.jsp").forward(request, response);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Get form data
-        String firstName = request.getParameter("firstName");
-        String lastName = request.getParameter("lastName");
-        String address = request.getParameter("address");
-        String district = request.getParameter("district");
-        String contact = request.getParameter("contact");
+        String ctx = request.getContextPath();
+        String action = request.getParameter("action");
 
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
+        // ── STEP 1: Send OTP ──────────────────────────────────────────────────
+        if ("send_otp".equals(action)) {
+            String email = trim(request.getParameter("email"));
 
-        // 🔒 Validate password
-        if (!PasswordUtil.isValidPassword(password)) {
-            response.getWriter().println("Weak Password!");
+            if (email.isEmpty() || !email.contains("@")) {
+                redirect(response, ctx, "register?error=invalid_email");
+                return;
+            }
+            if (UserDAO.emailExists(email)) {
+                redirect(response, ctx, "register?error=email_exists");
+                return;
+            }
+
+            String otp = OtpStore.generateOtp(email);
+            final String fe = email, fo = otp;
+            new Thread(() -> EmailUtil.sendOtp(fe, fo)).start();
+
+            redirect(response, ctx, "register?step=otp&email=" + encode(email));
             return;
         }
 
-        // Create Guest object
-        Guest guest = new Guest();
-        guest.setFirstName(firstName);
-        guest.setLastName(lastName);
-        guest.setAddress(address);
-        guest.setDistrict(district);
-        guest.setContactNumber(contact);
+        // ── STEP 2: Verify OTP + Create Account ───────────────────────────────
+        if ("create_account".equals(action)) {
+            String firstName = trim(request.getParameter("first_name"));
+            String lastName = trim(request.getParameter("last_name"));
+            String email = trim(request.getParameter("email"));
+            String address = trim(request.getParameter("address"));
+            String district = trim(request.getParameter("district"));
+            String contact = trim(request.getParameter("contact_number"));
+            String nic = trim(request.getParameter("nic"));
+            String password = trim(request.getParameter("password"));
+            String confirm = trim(request.getParameter("confirm_password"));
+            String otp = trim(request.getParameter("otp"));
+            String emailEnc = encode(email);
+            String stepParam = "&step=otp&email=" + emailEnc;
 
-        // Insert guest → get ID
-        int guestId = GuestDAO.insertGuest(guest);
+            if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()
+                    || contact.isEmpty() || nic.isEmpty() || password.isEmpty()) {
+                redirect(response, ctx, "register?error=missing_fields" + stepParam);
+                return;
+            }
+            if (!OtpStore.verify(email, otp)) {
+                redirect(response, ctx, "register?error=invalid_otp" + stepParam);
+                return;
+            }
+            if (!password.equals(confirm)) {
+                redirect(response, ctx, "register?error=password_mismatch" + stepParam);
+                return;
+            }
+            if (!PasswordUtil.isValidPassword(password)) {
+                redirect(response, ctx, "register?error=weak_password" + stepParam);
+                return;
+            }
+            if (!nic.matches("\\d{12}") && !nic.matches("\\d{9}[VXvx]")) {
+                redirect(response, ctx, "register?error=invalid_nic" + stepParam);
+                return;
+            }
+            if (!contact.matches("0[0-9]{9}")) {
+                redirect(response, ctx, "register?error=invalid_contact" + stepParam);
+                return;
+            }
+            if (UserDAO.emailExists(email)) {
+                redirect(response, ctx, "register?error=email_exists");
+                return;
+            }
+            if (GuestDAO.nicExists(nic)) {
+                redirect(response, ctx, "register?error=nic_exists" + stepParam);
+                return;
+            }
+            if (GuestDAO.contactExists(contact)) {
+                redirect(response, ctx, "register?error=contact_exists" + stepParam);
+                return;
+            }
 
-        // Hash password
-        String hashedPassword = PasswordUtil.hashPassword(password);
+            Guest guest = new Guest();
+            guest.setFirstName(firstName);
+            guest.setLastName(lastName);
+            guest.setAddress(address);
+            guest.setDistrict(district);
+            guest.setContactNumber(contact);
+            guest.setNic(nic.toUpperCase());
 
-        // Create User object
-        User user = new User();
-        user.setGuestId(guestId);
-        user.setEmail(email);
-        user.setPassword(hashedPassword);
-        user.setRole("guest");
+            int guestId = GuestDAO.insertGuest(guest);
+            if (guestId == 0) {
+                redirect(response, ctx, "register?error=server_error");
+                return;
+            }
 
-        // Insert user
-        boolean status = UserDAO.insertUser(user);
+            User user = new User();
+            user.setGuestId(guestId);
+            user.setEmail(email);
+            user.setPassword(PasswordUtil.hashPassword(password));
+            user.setRole("guest");
 
-        if (status) {
-            response.sendRedirect("index.jsp");
-        } else {
-            response.getWriter().println("Registration Failed!");
+            if (!UserDAO.insertUser(user)) {
+                redirect(response, ctx, "register?error=server_error");
+                return;
+            }
+
+            redirect(response, ctx, "login.jsp?registered=true");
+            return;
+        }
+
+        redirect(response, ctx, "register");
+    }
+
+    private void redirect(HttpServletResponse res, String ctx, String path) throws IOException {
+        res.sendRedirect(ctx + "/" + path);
+    }
+
+    private String trim(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private String encode(String s) {
+        try {
+            return java.net.URLEncoder.encode(s, "UTF-8");
+        } catch (Exception e) {
+            return s;
         }
     }
 }
