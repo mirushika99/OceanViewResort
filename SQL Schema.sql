@@ -50,13 +50,17 @@ CREATE TABLE reservations (
     rooms_booked INT,
     nights INT,
     total_amount DECIMAL(10,2),
+    status VARCHAR(20) NOT NULL DEFAULT 'confirmed',
 
     CONSTRAINT FK_res_guest FOREIGN KEY (guest_id)
     REFERENCES guests(id),
 
     CONSTRAINT FK_res_room FOREIGN KEY (room_id)
     REFERENCES rooms(id)
+
+    CREATE INDEX idx_reservations_status ON reservations(status)
 );
+
 
 
 --Bills
