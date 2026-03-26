@@ -1,104 +1,117 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.servlet;
+
+import com.oceanview.oceanviewresort.dao.ReservationDAO;
+import com.oceanview.oceanviewresort.dao.RoomDAO;
+import com.oceanview.oceanviewresort.model.Reservation;
+import com.oceanview.oceanviewresort.util.EmailUtil;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import jakarta.servlet.ServletException;
 import java.io.IOException;
-import com.oceanview.oceanviewresort.dao.*;
 import java.sql.Date;
-import java.sql.Timestamp;
 
 @WebServlet("/reservation")
 public class ReservationServlet extends HttpServlet {
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        System.out.println("ReservationServlet GET called 🔥");
-
-        // Load rooms from DB
-        RoomDAO roomDAO = new RoomDAO();
-        request.setAttribute("rooms", roomDAO.getAllRooms());
-
-        // Forward to JSP
-        request.getRequestDispatcher("/guest/reservation.jsp").forward(request, response);
+        HttpSession session = request.getSession(false);
+        if (session == null || !"guest".equals(session.getAttribute("role"))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp"); return;
+        }
+        loadRoomsAndForward(request, response);
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        if (session == null || !"guest".equals(session.getAttribute("role"))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp"); return;
+        }
+
+        String roomTypeParam = request.getParameter("room_type");
+        String checkinParam  = request.getParameter("checkin_date");
+        String checkoutParam = request.getParameter("checkout_date");
+
+        if (roomTypeParam == null || checkinParam == null || checkoutParam == null
+                || roomTypeParam.isBlank() || checkinParam.isBlank() || checkoutParam.isBlank()) {
+            forwardWithError(request, response, "Please fill in all fields."); return;
+        }
+
+        int typeId; Date checkin, checkout;
         try {
-            Integer guestId = (Integer) request.getSession().getAttribute("guest_id");
-            System.out.println("Guest ID: " + guestId);
+            typeId   = Integer.parseInt(roomTypeParam);
+            checkin  = Date.valueOf(checkinParam);
+            checkout = Date.valueOf(checkoutParam);
+        } catch (Exception e) {
+            forwardWithError(request, response, "Invalid input. Please use the date picker."); return;
+        }
 
-            if (guestId == null) {
-                response.sendRedirect(request.getContextPath() + "/index.jsp");
-                return;
-            }
+        Object guestIdObj = session.getAttribute("guest_id");
+        if (guestIdObj == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp"); return;
+        }
+        int guestId = (int) guestIdObj;
 
-            // Get values
-            String checkinDate = request.getParameter("checkin_date");
-            String checkinTime = request.getParameter("checkin_time");
+        long diffMs = checkout.getTime() - checkin.getTime();
+        int  nights = (int) (diffMs / (1000L * 60 * 60 * 24));
+        if (nights <= 0) {
+            forwardWithError(request, response, "Check-out must be after check-in."); return;
+        }
 
-            String checkoutDate = request.getParameter("checkout_date");
-            String checkoutTime = request.getParameter("checkout_time");
-            
-            System.out.println("Check-in Time: " + checkinTime);
-            System.out.println("Check-out Time: " + checkoutTime);
-            
-            if (checkinDate == null || checkinTime == null ||
-                checkoutDate == null || checkoutTime == null) {
-
-                request.setAttribute("error", "Please select date and time");
-                request.getRequestDispatcher("/guest/reservation.jsp").forward(request, response);
-                return;
-            }
-
-            // Combine date + time
-            String checkinStr = checkinDate + " " + checkinTime + ":00";
-            String checkoutStr = checkoutDate + " " + checkoutTime + ":00";
-
-            // Convert to Timestamp
-            Timestamp checkinTS = Timestamp.valueOf(checkinStr);
-            Timestamp checkoutTS = Timestamp.valueOf(checkoutStr);
-            
-            System.out.println("Date: " + request.getParameter("checkin_date"));
-            System.out.println("Time: " + request.getParameter("checkin_time"));
-            System.out.println("Room: " + request.getParameter("room_id"));
-            
-            
-            
-            
-
-            int roomId = Integer.parseInt(request.getParameter("room_id"));
-
+        try {
             ReservationDAO dao = new ReservationDAO();
-
-            // 🔴 Validation
-            if (!checkoutTS.after(checkinTS)) {
-                request.setAttribute("error", "Invalid date range!");
-                request.getRequestDispatcher("/guest/reservation.jsp").forward(request, response);
-                return;
+            int roomId = dao.findAvailableRoom(typeId, checkin, checkout);
+            if (roomId == -1) {
+                forwardWithError(request, response,
+                    "No rooms of this type are available for the selected dates."); return;
             }
 
-            // 🔴 Availability check
-            if (!dao.isRoomAvailable(roomId, checkinTS, checkoutTS)) {
-                request.setAttribute("error", "Room already booked!");
-                request.getRequestDispatcher("/guest/reservation.jsp").forward(request, response);
-                return;
+            double rate  = dao.getRoomRate(typeId);
+            double total = nights * rate;
+            dao.createReservation(guestId, roomId, checkin, checkout, nights, total);
+
+            // ── Fetch the just-created reservation and email confirmation ─────
+            Reservation res = dao.getLatestReservationForGuest(guestId);
+            if (res != null) {
+                String guestEmail = (String) session.getAttribute("user");
+                String guestName  = (String) session.getAttribute("guest_name");
+                if (guestName == null) guestName = "Guest";
+                final Reservation fRes  = res;
+                final String fEmail = guestEmail, fName = guestName;
+                new Thread(() -> EmailUtil.sendBookingConfirmation(
+                    fEmail, fName,
+                    fRes.getId(), fRes.getRoomType(), fRes.getRoomNumber(),
+                    fRes.getCheckIn().toString(), fRes.getCheckOut().toString(),
+                    fRes.getNights(), fRes.getTotalAmount()
+                )).start();
             }
 
-            // ✅ Save booking
-            dao.createReservation(guestId, roomId, checkinTS, checkoutTS);
-
-            response.sendRedirect(request.getContextPath() + "/guest/success.jsp");
+            response.sendRedirect(request.getContextPath() + "/history?success=1");
 
         } catch (Exception e) {
             e.printStackTrace();
+            forwardWithError(request, response, "A server error occurred. Please try again.");
         }
+    }
+
+    private void forwardWithError(HttpServletRequest req, HttpServletResponse res, String msg)
+            throws ServletException, IOException {
+        req.setAttribute("error", msg);
+        loadRoomsAndForward(req, res);
+    }
+
+    private void loadRoomsAndForward(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            request.setAttribute("rooms", new RoomDAO().getAllRoomTypes());
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("rooms", new java.util.ArrayList<>());
+        }
+        request.getRequestDispatcher("/guest/reservation.jsp").forward(request, response);
     }
 }

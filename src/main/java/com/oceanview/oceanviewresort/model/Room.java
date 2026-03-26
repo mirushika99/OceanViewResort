@@ -7,20 +7,42 @@ package com.oceanview.oceanviewresort.model;
 public class Room {
 
     private int id;
-    private String type;
-    private int count;
-    private double ratePerNight;
+    private String roomNumber;
+    private int typeId;
+
+    // Optional (for join queries)
+    private String typeName;
 
     // Getters & Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public int getCount() { return count; }
-    public void setCount(int count) { this.count = count; }
+    public String getRoomNumber() {
+        return roomNumber;
+    }
 
-    public double getRatePerNight() { return ratePerNight; }
-    public void setRatePerNight(double ratePerNight) { this.ratePerNight = ratePerNight; }
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public int getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(int typeId) {
+        this.typeId = typeId;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
 }

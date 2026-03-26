@@ -1,12 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.servlet;
 
-
 import java.io.IOException;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
@@ -18,7 +12,7 @@ public class LogoutServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        if(session != null){
+        if (session != null) {
             session.invalidate();
         }
 
