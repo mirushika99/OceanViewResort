@@ -31,10 +31,31 @@ public class PasswordUtil {
         return null;
     }
     
+    
+    /*
+    * Validates the strength of a given password.
+    * 
+    * Rules enforced:
+    * - Password length must be between 6 and 15 characters.
+    * - Must contain at least one uppercase letter (A-Z).
+    * - Must contain at least one lowercase letter (a-z).
+    * - Must contain at least one numeric digit (0-9).
+    * - Must contain at least one special character (!@#$%^&*()).
+    * 
+    * Returns:
+    * - true  → if all validation rules are satisfied
+    * - false → if any rule is violated
+    */
     public static boolean isValidPassword(String password) {
 
-        String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+        if (password.length() < 6 || password.length() > 15) return false;
 
-        return password.matches(regex);
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasNumber = password.matches(".*\\d.*");
+        boolean hasSpecial = password.matches(".*[!@#$%^&*()].*");
+
+        return hasUpper && hasLower && hasNumber && hasSpecial;
     }
 }
+

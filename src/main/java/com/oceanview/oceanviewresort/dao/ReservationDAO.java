@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.dao;
 
 import com.oceanview.oceanviewresort.model.Reservation;
@@ -11,12 +7,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class ReservationDAO {
 
     public boolean isRoomAvailable(int roomId, Timestamp checkin, Timestamp checkout) throws Exception {
 
         String sql = "SELECT COUNT(*) FROM reservations " +
-                "WHERE room_id = ? AND (check_in < ? AND check_out > ?)";
+                     "WHERE room_id = ? AND (check_in < ? AND check_out > ?)";
 
         Connection conn = DBConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -42,11 +39,11 @@ public class ReservationDAO {
             Connection conn = DBConnection.getConnection();
 
             String sql = "SELECT TOP 1 r.id FROM rooms r " +
-                    "WHERE r.type_id = ? AND r.id NOT IN (" +
-                    "SELECT room_id FROM reservations " +
-                    "WHERE check_in < ? AND check_out > ? " +
-                    "AND status != 'cancelled'" +
-                    ")";
+             "WHERE r.type_id = ? AND r.id NOT IN (" +
+             "SELECT room_id FROM reservations " +
+             "WHERE check_in < ? AND check_out > ? " +
+             "AND status != 'cancelled'" +
+             ")";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, typeId);
@@ -65,7 +62,8 @@ public class ReservationDAO {
 
         return roomId;
     }
-
+    
+    
     public double getRoomRate(int typeId) {
 
         double rate = 0;
@@ -89,7 +87,7 @@ public class ReservationDAO {
 
         return rate;
     }
-
+    
     public void createReservation(int guestId, int roomId,
             Date checkin, Date checkout,
             int nights, double total) {
@@ -98,8 +96,8 @@ public class ReservationDAO {
             Connection conn = DBConnection.getConnection();
 
             String sql = "INSERT INTO reservations " +
-                    "(guest_id, room_id, check_in, check_out, nights, total_amount) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+                         "(guest_id, room_id, check_in, check_out, nights, total_amount) " +
+                         "VALUES (?, ?, ?, ?, ?, ?)";
 
             PreparedStatement ps = conn.prepareStatement(sql);
 
@@ -116,7 +114,8 @@ public class ReservationDAO {
             e.printStackTrace();
         }
     }
-
+    
+    
     public List<Reservation> getReservations(Integer guestId) {
 
         List<Reservation> list = new ArrayList<>();
@@ -124,13 +123,13 @@ public class ReservationDAO {
         try {
             Connection conn = DBConnection.getConnection();
 
-            String sql = "SELECT r.id, r.guest_id, g.first_name, g.last_name, g.address, g.contact_number, " +
-                    "rt.type_name, rt.description, rm.room_number, " +
-                    "r.check_in, r.check_out, r.nights, r.total_amount, r.status " +
-                    "FROM reservations r " +
-                    "JOIN guests g ON r.guest_id = g.id " +
-                    "JOIN rooms rm ON r.room_id = rm.id " +
-                    "JOIN room_types rt ON rm.type_id = rt.id ";
+           String sql = "SELECT r.id, r.guest_id, g.first_name, g.last_name, g.address, g.contact_number, " +
+             "rt.type_name, rt.description, rm.room_number, " +
+             "r.check_in, r.check_out, r.nights, r.total_amount, r.status " +
+             "FROM reservations r " +
+             "JOIN guests g ON r.guest_id = g.id " +
+             "JOIN rooms rm ON r.room_id = rm.id " +
+             "JOIN room_types rt ON rm.type_id = rt.id ";
 
             if (guestId != null) {
                 sql += "WHERE r.guest_id = ?";
@@ -167,7 +166,7 @@ public class ReservationDAO {
                 res.setStatus(rs.getString("status"));
 
                 // Optional extra fields (you can extend model)
-                // res.setRoomType(rs.getString("type_name"));
+                //res.setRoomType(rs.getString("type_name"));
 
                 list.add(res);
             }
@@ -178,23 +177,24 @@ public class ReservationDAO {
 
         return list;
     }
-
+    
+    
     public Reservation getReservationById(int id) {
 
         Reservation res = null;
 
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(
-                        "SELECT r.id, r.guest_id, " +
-                                "g.first_name, g.last_name, g.address, g.contact_number, " +
-                                "rt.type_name, rt.description, rt.rate_per_night, " +
-                                "rm.room_number, " +
-                                "r.check_in, r.check_out, r.nights, r.total_amount " +
-                                "FROM reservations r " +
-                                "JOIN guests g      ON r.guest_id = g.id " +
-                                "JOIN rooms rm      ON r.room_id  = rm.id " +
-                                "JOIN room_types rt ON rm.type_id  = rt.id " +
-                                "WHERE r.id = ?")) {
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT r.id, r.guest_id, " +
+                 "g.first_name, g.last_name, g.address, g.contact_number, " +
+                 "rt.type_name, rt.description, rt.rate_per_night, " +
+                 "rm.room_number, " +
+                 "r.check_in, r.check_out, r.nights, r.total_amount " +
+                 "FROM reservations r " +
+                 "JOIN guests g      ON r.guest_id = g.id " +
+                 "JOIN rooms rm      ON r.room_id  = rm.id " +
+                 "JOIN room_types rt ON rm.type_id  = rt.id " +
+                 "WHERE r.id = ?")) {
 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -224,12 +224,13 @@ public class ReservationDAO {
 
         return res;
     }
-
+    
+    
     public boolean cancelReservation(int reservationId) {
 
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE reservations SET status = 'cancelled' WHERE id = ?")) {
+             PreparedStatement ps = conn.prepareStatement(
+                 "UPDATE reservations SET status = 'cancelled' WHERE id = ?")) {
 
             ps.setInt(1, reservationId);
             int rows = ps.executeUpdate();
@@ -240,21 +241,22 @@ public class ReservationDAO {
             return false;
         }
     }
-
+    
+    
     public Reservation getLatestReservationForGuest(int guestId) {
         String sql = "SELECT TOP 1 r.id, r.guest_id, " +
-                "g.first_name, g.last_name, g.address, g.contact_number, " +
-                "rt.type_name, rt.description, rt.rate_per_night, " +
-                "rm.room_number, r.check_in, r.check_out, r.nights, r.total_amount, r.status " +
-                "FROM reservations r " +
-                "JOIN guests g      ON r.guest_id = g.id " +
-                "JOIN rooms rm      ON r.room_id  = rm.id " +
-                "JOIN room_types rt ON rm.type_id  = rt.id " +
-                "WHERE r.guest_id = ? " +
-                "ORDER BY r.id DESC";
+                     "g.first_name, g.last_name, g.address, g.contact_number, " +
+                     "rt.type_name, rt.description, rt.rate_per_night, " +
+                     "rm.room_number, r.check_in, r.check_out, r.nights, r.total_amount, r.status " +
+                     "FROM reservations r " +
+                     "JOIN guests g      ON r.guest_id = g.id " +
+                     "JOIN rooms rm      ON r.room_id  = rm.id " +
+                     "JOIN room_types rt ON rm.type_id  = rt.id " +
+                     "WHERE r.guest_id = ? " +
+                     "ORDER BY r.id DESC";
 
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, guestId);
             try (ResultSet rs = ps.executeQuery()) {

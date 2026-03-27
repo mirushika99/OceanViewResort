@@ -19,14 +19,14 @@ public class GuestDashboardServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
         String role = (String) session.getAttribute("role");
 
         if (role == null || !"guest".equals(role)) {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 

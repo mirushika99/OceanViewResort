@@ -19,32 +19,34 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String email = request.getParameter("email");
-        String password = request.getParameter("password");
+        String password = request.getParameter("password");       
+       
 
         User user = UserDAO.getUser(email, password);
-        System.out.println(email);
-        System.out.println(password);
+ 
 
-        if (user != null) {
-
+        if (user != null) {   
             HttpSession session = request.getSession();
             session.setAttribute("user", user.getEmail());
             session.setAttribute("role", user.getRole());
             session.setAttribute("guest_id", user.getGuestId());
             session.setAttribute("guest_name", user.getFirstName());
+            
+            
 
             String contextPath = request.getContextPath();
 
             if (user.getRole().equals("admin")) {
-                System.out.println("admin");
+                System.out.println("admin");  
                 response.sendRedirect(contextPath + "/admin.jsp");
             } else {
-                System.out.println("guest");
+                System.out.println("guest");  
                 response.sendRedirect(request.getContextPath() + "/guest-dashboard");
             }
 
         } else {
-            response.sendRedirect(request.getContextPath() + "/error.jsp");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=true");
         }
     }
 }
+    

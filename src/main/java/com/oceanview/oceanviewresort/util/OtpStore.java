@@ -26,8 +26,7 @@ public class OtpStore {
     // ── Verify OTP — returns true and removes it if valid ────────────────────
     public static boolean verify(String email, String otp) {
         Entry entry = store.get(email.toLowerCase());
-        if (entry == null)
-            return false;
+        if (entry == null) return false;
 
         boolean expired = (System.currentTimeMillis() - entry.createdAt) > EXPIRY_MS;
         boolean matches = entry.otp.equals(otp.trim());
@@ -48,8 +47,7 @@ public class OtpStore {
     // ── Check if a pending OTP exists for this email ──────────────────────────
     public static boolean hasPending(String email) {
         Entry entry = store.get(email.toLowerCase());
-        if (entry == null)
-            return false;
+        if (entry == null) return false;
         if ((System.currentTimeMillis() - entry.createdAt) > EXPIRY_MS) {
             store.remove(email.toLowerCase());
             return false;
@@ -59,8 +57,7 @@ public class OtpStore {
 
     private static class Entry {
         final String otp;
-        final long createdAt;
-
+        final long   createdAt;
         Entry(String otp, long createdAt) {
             this.otp = otp;
             this.createdAt = createdAt;

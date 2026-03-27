@@ -28,7 +28,7 @@ public class RoomDetailsServlet extends HttpServlet {
             int typeId = Integer.parseInt(typeIdParam);
 
             // ── 2. Parse dates ────────────────────────────────────────────────
-            String cin = request.getParameter("checkin");
+            String cin  = request.getParameter("checkin");
             String cout = request.getParameter("checkout");
 
             if (cin == null || cin.isBlank() || cout == null || cout.isBlank()) {
@@ -39,7 +39,7 @@ public class RoomDetailsServlet extends HttpServlet {
                 return;
             }
 
-            Date checkin = Date.valueOf(cin);
+            Date checkin  = Date.valueOf(cin);
             Date checkout = Date.valueOf(cout);
 
             // ── 3. Validate date range ────────────────────────────────────────
@@ -50,14 +50,15 @@ public class RoomDetailsServlet extends HttpServlet {
 
             // ── 4. Fetch from DB ──────────────────────────────────────────────
             RoomDAO dao = new RoomDAO();
-            int available = dao.getAvailableRoomCount(typeId, checkin, checkout);
+            int    available   = dao.getAvailableRoomCount(typeId, checkin, checkout);
             String description = escapeJson(dao.getRoomDescription(typeId));
 
             // ── 5. Write safe JSON ────────────────────────────────────────────
             // FIX: hand-built format string replaced with safe escaping
             out.write(String.format(
-                    "{\"available\":%d,\"description\":\"%s\"}",
-                    available, description));
+                "{\"available\":%d,\"description\":\"%s\"}",
+                available, description
+            ));
 
         } catch (NumberFormatException e) {
             out.write("{\"available\":0,\"description\":\"\",\"error\":\"Invalid typeId\"}");
@@ -76,12 +77,11 @@ public class RoomDetailsServlet extends HttpServlet {
      * FIX: original only escaped double quotes — any other special char broke JSON.
      */
     private String escapeJson(String s) {
-        if (s == null)
-            return "";
-        return s.replace("\\", "\\\\") // backslash first
-                .replace("\"", "\\\"") // double quote
-                .replace("\n", "\\n") // newline
-                .replace("\r", "\\r") // carriage return
-                .replace("\t", "\\t"); // tab
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")   // backslash first
+                .replace("\"", "\\\"")   // double quote
+                .replace("\n", "\\n")    // newline
+                .replace("\r", "\\r")    // carriage return
+                .replace("\t", "\\t");   // tab
     }
 }

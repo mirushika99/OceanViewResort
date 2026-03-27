@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.dao;
 
 import com.oceanview.oceanviewresort.model.RoomType;
@@ -13,7 +9,7 @@ import java.util.List;
 
 public class RoomDAO {
 
-    // 🔥 1. Get all room types (for dropdown)
+    // Get all room types (for dropdown)
     public List<RoomType> getAllRoomTypes() {
 
         List<RoomType> list = new ArrayList<>();
@@ -44,7 +40,7 @@ public class RoomDAO {
         return list;
     }
 
-    // 🔥 2. Find available room (core logic)
+    // Find available room (core logic)
     public int findAvailableRoom(int typeId, Date checkin, Date checkout) {
 
         int roomId = -1;
@@ -77,7 +73,7 @@ public class RoomDAO {
         return roomId;
     }
 
-    // 🔥 3. Get room rate by type
+    // Get room rate by type
     public double getRoomRate(int typeId) {
 
         double rate = 0;
@@ -103,7 +99,7 @@ public class RoomDAO {
         return rate;
     }
 
-    // 🔥 4. Get room details (for display / history)
+    // Get room details (for display / history)
     public String getRoomNumber(int roomId) {
 
         String roomNumber = "";
@@ -161,6 +157,8 @@ public class RoomDAO {
 
         return count;
     }
+    
+    
     
     public String getRoomDescription(int typeId) {
 

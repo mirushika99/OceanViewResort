@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.dao;
 
 import com.oceanview.oceanviewresort.util.DBConnection;
@@ -39,7 +35,7 @@ public class UserDAO {
 
         return status;
     }
-
+    
     public static String validateUser(String email, String password) {
 
         String role = null;
@@ -67,7 +63,8 @@ public class UserDAO {
 
         return role;
     }
-
+    
+    
     public static boolean insertUser(User user) {
 
         boolean status = false;
@@ -100,26 +97,25 @@ public class UserDAO {
 
         return status;
     }
-
+    
     public static User getUser(String email, String password) {
-        // FIX 1: try-with-resources â€” connection always closed
+        // FIX 1: try-with-resources — connection always closed
         // FIX 2: JOIN guests to fetch first_name for session display
         // FIX 3: explicit columns, no SELECT *
         String sql = "SELECT u.id, u.guest_id, u.email, u.role, g.first_name " +
-                "FROM users u " +
-                "LEFT JOIN guests g ON u.guest_id = g.id " +
-                "WHERE u.email = ? AND u.password = ?";
-
+                     "FROM users u " +
+                     "LEFT JOIN guests g ON u.guest_id = g.id " +
+                     "WHERE u.email = ? AND u.password = ?";
+ 
         String hashedPassword = PasswordUtil.hashPassword(password);
-        if (hashedPassword == null)
-            return null;
-
+        if (hashedPassword == null) return null;
+ 
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+ 
             ps.setString(1, email);
             ps.setString(2, hashedPassword);
-
+ 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     User user = new User();
@@ -131,18 +127,18 @@ public class UserDAO {
                     return user;
                 }
             }
-
+ 
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
-
+    
     public static boolean emailExists(String email) {
 
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(
-                        "SELECT 1 FROM users WHERE email=?")) {
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT 1 FROM users WHERE email=?")) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -155,5 +151,7 @@ public class UserDAO {
 
         return false;
     }
-
+    
+    
 }
+

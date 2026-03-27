@@ -4,6 +4,7 @@
  */
 package com.oceanview.oceanviewresort.model;
 
+
 public class User {
 
     private int id;
@@ -12,53 +13,25 @@ public class User {
     private String password;
     private String role;
     private String firstName;
+    
+    
 
     // Getters & Setters
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public Integer getGuestId() { return guestId; }
+    public void setGuestId(Integer guestId) { this.guestId = guestId; }
 
-    public Integer getGuestId() {
-        return guestId;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setGuestId(Integer guestId) {
-        this.guestId = guestId;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    
+    public String getFirstName(){ return firstName;}
+    public void setFirstName(String firstName) {this.firstName=firstName;}
 }

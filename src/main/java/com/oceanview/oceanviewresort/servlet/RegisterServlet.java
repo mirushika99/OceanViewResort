@@ -25,7 +25,7 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String ctx = request.getContextPath();
+        String ctx    = request.getContextPath();
         String action = request.getParameter("action");
 
         // ── STEP 1: Send OTP ──────────────────────────────────────────────────
@@ -33,12 +33,10 @@ public class RegisterServlet extends HttpServlet {
             String email = trim(request.getParameter("email"));
 
             if (email.isEmpty() || !email.contains("@")) {
-                redirect(response, ctx, "register?error=invalid_email");
-                return;
+                redirect(response, ctx, "register?error=invalid_email"); return;
             }
             if (UserDAO.emailExists(email)) {
-                redirect(response, ctx, "register?error=email_exists");
-                return;
+                redirect(response, ctx, "register?error=email_exists"); return;
             }
 
             String otp = OtpStore.generateOtp(email);
@@ -52,54 +50,63 @@ public class RegisterServlet extends HttpServlet {
         // ── STEP 2: Verify OTP + Create Account ───────────────────────────────
         if ("create_account".equals(action)) {
             String firstName = trim(request.getParameter("first_name"));
-            String lastName = trim(request.getParameter("last_name"));
-            String email = trim(request.getParameter("email"));
-            String address = trim(request.getParameter("address"));
-            String district = trim(request.getParameter("district"));
-            String contact = trim(request.getParameter("contact_number"));
-            String nic = trim(request.getParameter("nic"));
-            String password = trim(request.getParameter("password"));
-            String confirm = trim(request.getParameter("confirm_password"));
-            String otp = trim(request.getParameter("otp"));
-            String emailEnc = encode(email);
+            String lastName  = trim(request.getParameter("last_name"));
+            String email     = trim(request.getParameter("email"));
+            String address   = trim(request.getParameter("address"));
+            String district  = trim(request.getParameter("district"));
+            String contact   = trim(request.getParameter("contact_number"));
+            String nic       = trim(request.getParameter("nic"));
+            String password  = trim(request.getParameter("password"));
+            String confirm   = trim(request.getParameter("confirm_password"));
+            String otp       = trim(request.getParameter("otp"));
+            String emailEnc  = encode(email);
             String stepParam = "&step=otp&email=" + emailEnc;
-
+            
+            
+            // Check if any required field is empty
             if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()
                     || contact.isEmpty() || nic.isEmpty() || password.isEmpty()) {
-                redirect(response, ctx, "register?error=missing_fields" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=missing_fields" + stepParam); return;
             }
+            
+            // Verify the OTP entered by the user
             if (!OtpStore.verify(email, otp)) {
-                redirect(response, ctx, "register?error=invalid_otp" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=invalid_otp" + stepParam); return;
             }
+            
+            // Check if password and confirm password match
             if (!password.equals(confirm)) {
-                redirect(response, ctx, "register?error=password_mismatch" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=password_mismatch" + stepParam); return;
             }
+            
+            // Validate password strength (custom validation method)
             if (!PasswordUtil.isValidPassword(password)) {
-                redirect(response, ctx, "register?error=weak_password" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=weak_password" + stepParam); return;
             }
+            
+            // Validate NIC format (Sri Lankan NIC: 12 digits OR 9 digits + V/X)
             if (!nic.matches("\\d{12}") && !nic.matches("\\d{9}[VXvx]")) {
-                redirect(response, ctx, "register?error=invalid_nic" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=invalid_nic" + stepParam); return;
             }
+            
+            // Validate contact number (must start with 0 and contain 10 digits)
             if (!contact.matches("0[0-9]{9}")) {
-                redirect(response, ctx, "register?error=invalid_contact" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=invalid_contact" + stepParam); return;
             }
+            
+            // Check if email already exists in the system
             if (UserDAO.emailExists(email)) {
-                redirect(response, ctx, "register?error=email_exists");
-                return;
+                redirect(response, ctx, "register?error=email_exists"); return;
             }
+            
+            // Check if NIC already exists in guest records
             if (GuestDAO.nicExists(nic)) {
-                redirect(response, ctx, "register?error=nic_exists" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=nic_exists" + stepParam); return;
             }
+            
+            // Check if contact number already exists
             if (GuestDAO.contactExists(contact)) {
-                redirect(response, ctx, "register?error=contact_exists" + stepParam);
-                return;
+                redirect(response, ctx, "register?error=contact_exists" + stepParam); return;
             }
 
             Guest guest = new Guest();
@@ -112,8 +119,7 @@ public class RegisterServlet extends HttpServlet {
 
             int guestId = GuestDAO.insertGuest(guest);
             if (guestId == 0) {
-                redirect(response, ctx, "register?error=server_error");
-                return;
+                redirect(response, ctx, "register?error=server_error"); return;
             }
 
             User user = new User();
@@ -123,8 +129,7 @@ public class RegisterServlet extends HttpServlet {
             user.setRole("guest");
 
             if (!UserDAO.insertUser(user)) {
-                redirect(response, ctx, "register?error=server_error");
-                return;
+                redirect(response, ctx, "register?error=server_error"); return;
             }
 
             redirect(response, ctx, "login.jsp?registered=true");
@@ -137,16 +142,9 @@ public class RegisterServlet extends HttpServlet {
     private void redirect(HttpServletResponse res, String ctx, String path) throws IOException {
         res.sendRedirect(ctx + "/" + path);
     }
-
-    private String trim(String s) {
-        return s == null ? "" : s.trim();
-    }
-
+    private String trim(String s) { return s == null ? "" : s.trim(); }
     private String encode(String s) {
-        try {
-            return java.net.URLEncoder.encode(s, "UTF-8");
-        } catch (Exception e) {
-            return s;
-        }
+        try { return java.net.URLEncoder.encode(s, "UTF-8"); }
+        catch (Exception e) { return s; }
     }
 }

@@ -15,8 +15,8 @@ import java.util.Properties;
  */
 public class EmailUtil {
 
-    private static final String GMAIL_ADDRESS  = "oceanviewresortapp@gmail.com";   // ← replace
-    private static final String GMAIL_APP_PASSWORD = "yatb wbut dvzo tflr"; // ← replace with app password
+    private static final String GMAIL_ADDRESS  = "oceanviewresortapp@gmail.com";   
+    private static final String GMAIL_APP_PASSWORD = "yatb wbut dvzo tflr"; 
 
     // ── Core send method ─────────────────────────────────────────────────────
     private static void send(String toEmail, String subject, String htmlBody) throws Exception {
