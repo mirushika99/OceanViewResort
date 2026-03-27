@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.servlet;
 
 import com.oceanview.oceanviewresort.dao.UserDAO;
@@ -30,8 +26,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", user.getEmail());
             session.setAttribute("role", user.getRole());
             session.setAttribute("guest_id", user.getGuestId());
-            session.setAttribute("guest_name", user.getFirstName());
-            
+            session.setAttribute("guest_name", user.getFirstName());           
             
 
             String contextPath = request.getContextPath();

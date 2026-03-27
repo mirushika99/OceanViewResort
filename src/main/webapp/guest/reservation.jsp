@@ -601,17 +601,6 @@
         <!-- ─── SIDEBAR ─── -->
         <div class="sidebar">
 
-            <!-- Live Summary -->
-<!--            <div class="summary-card">
-                <div class="summary-header">
-                    <h3>Booking Summary</h3>
-                    <p>Updates as you fill the form</p>
-                </div>
-                <div class="summary-body" id="summaryBody">
-                    <div class="summary-placeholder">Fill in the details to see your booking summary.</div>
-                </div>
-            </div>-->
-
             <!-- Tips -->
             <div class="tips-card">
                 <div class="tips-title">

@@ -510,27 +510,7 @@
                 </div>
             </a>
                 
-<!--            <a class="action-card card-rooms" href="${pageContext.request.contextPath}/rooms">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8">
-                        <rect x="3" y="7" width="18" height="13" rx="2"/>
-                        <path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>
-                        <line x1="3" y1="13" x2="21" y2="13"/>
-                    </svg>
-                </div>
 
-                <div class="card-title">View All Rooms</div>
-
-                <div class="card-desc">
-                    Browse all available room types, check features, and choose the perfect stay for your visit.
-                </div>
-
-                <div class="card-arrow">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                </div>
-            </a>-->
 
             <a class="action-card card-history" href="${pageContext.request.contextPath}/history">
                 <div class="card-icon">

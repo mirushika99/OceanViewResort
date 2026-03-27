@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.oceanview.oceanviewresort.servlet;
 import com.oceanview.oceanviewresort.dao.ReservationDAO;
 import com.oceanview.oceanviewresort.model.Reservation;
